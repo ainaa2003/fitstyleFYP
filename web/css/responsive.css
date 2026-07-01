@@ -1,0 +1,66 @@
+/* FitStyle responsive fixes for Railway/mobile deployment */
+html { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: inherit; }
+body { overflow-x: hidden; }
+img, video, canvas, svg { max-width: 100%; height: auto; }
+.container, .container-fluid { max-width: 100%; }
+.navbar .container { gap: 10px; }
+.navbar-brand { min-width: 0; white-space: nowrap; }
+.navbar-brand img { max-height: 52px; width: auto; }
+.navbar-toggler { border-color: rgba(212,175,55,.65); }
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28212, 175, 55, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+}
+.table-responsive, .table-card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table { width: 100%; }
+.card, .table-card, .payment-card, .profile-card, .gateway-card, .page-card { max-width: 100%; }
+.form-control, .form-select, .btn { max-width: 100%; }
+.btn { white-space: normal; }
+.modal-dialog { max-width: calc(100% - 1rem); margin-left: auto; margin-right: auto; }
+.sidebar { position: relative; }
+.main-content { min-width: 0; }
+
+@media (max-width: 991.98px) {
+    .navbar { padding: 8px 0; }
+    .navbar-brand { font-size: 20px !important; letter-spacing: 1px !important; }
+    .navbar-brand img { height: 44px !important; margin-right: 8px !important; }
+    .user-tag { order: 3; width: 100%; margin-left: 0 !important; padding-left: 0 !important; border-left: 0 !important; font-size: 12px !important; }
+    .navbar-collapse { width: 100%; }
+    .navbar-nav { align-items: stretch !important; padding-top: 10px; }
+    .nav-link, .btn-login-nav, .btn-logout-nav { margin-left: 0 !important; padding: 10px 12px !important; border-radius: 8px; }
+    .sidebar { min-height: auto !important; padding: 10px 12px !important; }
+    .sidebar .nav { flex-direction: row !important; overflow-x: auto; flex-wrap: nowrap; gap: 8px; padding-bottom: 4px; }
+    .sidebar .nav-link { white-space: nowrap; margin-bottom: 0 !important; }
+    main, .main-content, main.p-4 { padding: 16px !important; width: 100%; }
+    .content-card, .stat-card, .profile-card, .page-card, .gateway-card, .payment-card { margin-left: 0 !important; margin-right: 0 !important; }
+    .d-flex.justify-content-between { gap: 8px; }
+}
+
+@media (max-width: 767.98px) {
+    body { font-size: 14px; }
+    h1 { font-size: 1.75rem !important; }
+    h2 { font-size: 1.45rem !important; }
+    h3, h4 { font-size: 1.2rem !important; }
+    .container, .container-fluid { padding-left: 12px !important; padding-right: 12px !important; }
+    .row { --bs-gutter-x: 1rem; }
+    .card, .content-card, .stat-card { border-radius: 12px !important; }
+    .p-4 { padding: 1rem !important; }
+    .px-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
+    .py-4 { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+    .table-card { border-radius: 12px; }
+    .table { font-size: 0.86rem; }
+    .timeline-step { font-size: 0.68rem !important; padding: 4px 7px !important; }
+    .timeline-arrow { display: none !important; }
+    .progress-timeline { align-items: flex-start !important; }
+    .btn-action, .btn-sm { width: auto; margin-bottom: 4px; }
+    .receipt-card, .login-card, .register-card { width: 100% !important; }
+}
+
+@media (max-width: 575.98px) {
+    .navbar-brand { font-size: 18px !important; }
+    .navbar-brand img { height: 38px !important; }
+    .btn, .form-control, .form-select { font-size: 0.92rem; }
+    .d-flex.flex-wrap > .btn { flex: 1 1 auto; }
+    td, th { vertical-align: top; }
+    [style*="min-width: 340px"] { min-width: 260px !important; }
+}
