@@ -7,6 +7,7 @@ package fitstyle.controller;
 import fitstyle.dao.DesignDAO;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
@@ -23,18 +24,53 @@ import javax.servlet.http.Part;
 )
 public class DesignController extends HttpServlet {
 
+    private String getUploadPath(String folderName) {
+        String baseUploadDir = System.getenv("FITSTYLE_UPLOAD_DIR");
+
+        if (baseUploadDir == null || baseUploadDir.trim().isEmpty()) {
+            baseUploadDir = System.getProperty("java.io.tmpdir") + File.separator + "fitstyle_uploads";
+        }
+
+        String uploadPath = baseUploadDir + File.separator + folderName;
+        File uploadDir = new File(uploadPath);
+
+        if (!uploadDir.exists()) {
+            uploadDir.mkdirs();
+        }
+
+        return uploadPath;
+    }
+
+    private String cleanFileName(String fileName) {
+        if (fileName == null) {
+            return "";
+        }
+
+        fileName = fileName.replace("\\", "/");
+        fileName = Paths.get(fileName).getFileName().toString();
+
+        return fileName.replaceAll("[^a-zA-Z0-9._-]", "_");
+    }
+
+    private String saveUploadedFile(Part filePart, String folderName) throws IOException {
+        if (filePart == null || filePart.getSize() <= 0 || filePart.getSubmittedFileName() == null
+                || filePart.getSubmittedFileName().trim().isEmpty()) {
+            return null;
+        }
+
+        String fileName = cleanFileName(filePart.getSubmittedFileName());
+        String uploadPath = getUploadPath(folderName);
+
+        filePart.write(uploadPath + File.separator + fileName);
+
+        return fileName;
+    }
+
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         String action = request.getParameter("action");
         DesignDAO dao = new DesignDAO();
-
-        // Setup folder simpanan gambar
-        String uploadPath = getServletContext().getRealPath("/") + "image" + File.separator + "uploads";
-        File uploadDir = new File(uploadPath);
-        if (!uploadDir.exists()) {
-            uploadDir.mkdirs();
-        }
 
         try {
             if ("addDesign".equals(action)) {
@@ -48,28 +84,12 @@ public class DesignController extends HttpServlet {
                 String priceStr = request.getParameter("basePrice");
                 double price = Double.parseDouble(priceStr);
 
-                // 2. KEMASKINI NILAI (Jangan letak 'String' atau 'File' lagi di depan)
-                uploadPath = "C:/Users/Acer/Documents/AAAASem 5 FYP/baju";
-                uploadDir = new File(uploadPath);
-
-                if (!uploadDir.exists()) {
-                    uploadDir.mkdirs();
-                }
-
-                // 3. Proses Fail Gambar
-                // 1. Ambil fail dari form
+                // 2. Proses Fail Gambar
                 Part filePart = request.getPart("designImage");
+                String fileName = saveUploadedFile(filePart, "baju");
 
-// 2. Ambil nama asal fail (Contoh: "baju_kurung.jpg")
-                String fileName = filePart.getSubmittedFileName();
-
-// 3. Simpan fail fizikal ke folder "baju" menggunakan nama asal
-                filePart.write(uploadPath + File.separator + fileName);
-
-// 4. Simpan ke database (DAO akan terima nama asal fail sahaja)
+                // 3. Simpan ke database
                 boolean success = dao.addDesign(name, cat, sizeGuideType, price, fileName);
-                // Simpan fail ke C:/fitstyle_images
-                filePart.write(uploadPath + File.separator + fileName);
 
                 if (success) {
                     response.sendRedirect("tailor-dashboard.jsp?section=design&msg=Design added successfully!");
@@ -87,27 +107,11 @@ public class DesignController extends HttpServlet {
                 String stockStr = request.getParameter("stockQuantity");
                 double stockQuantity = (stockStr != null && !stockStr.trim().isEmpty()) ? Double.parseDouble(stockStr) : 0.00;
 
-                // 2. KEMASKINI NILAI LOKASI FOLDER (Ikut folder baju atau buat folder material)
-                // Kalau nak asingkan, tukar hujung tu jadi .../material
-                uploadPath = "C:/Users/Acer/Documents/AAAASem 5 FYP/material";
-                uploadDir = new File(uploadPath);
-
-                if (!uploadDir.exists()) {
-                    uploadDir.mkdirs();
-                }
-
-                // 3. Proses Fail Gambar
-                // 1. Ambil fail dari form
+                // 2. Proses Fail Gambar
                 Part filePart = request.getPart("materialImage");
+                String fileName = saveUploadedFile(filePart, "material");
 
-                // 2. Ambil nama asal fail (Contoh: "kain_sutera.jpg")
-                String fileName = filePart.getSubmittedFileName();
-
-                // 3. Simpan fail fizikal ke folder menggunakan nama asal
-                filePart.write(uploadPath + File.separator + fileName);
-
-                // 4. Simpan ke Database
-                // Pastikan DAO addMaterial kau terima parameter mengikut susunan (name, cat, fileName, price)
+                // 3. Simpan ke Database
                 boolean success = dao.addMaterial(materialType, materialName, cat, fileName, price, stockQuantity);
 
                 if (success) {
@@ -124,18 +128,9 @@ public class DesignController extends HttpServlet {
                     sizeGuideType = "Baju Kurung Standard";
                 }
                 double price = Double.parseDouble(request.getParameter("basePrice"));
-                String fileName = null;
 
                 Part filePart = request.getPart("designImage");
-                if (filePart != null && filePart.getSize() > 0 && filePart.getSubmittedFileName() != null && !filePart.getSubmittedFileName().trim().isEmpty()) {
-                    uploadPath = "C:/Users/Acer/Documents/AAAASem 5 FYP/baju";
-                    uploadDir = new File(uploadPath);
-                    if (!uploadDir.exists()) {
-                        uploadDir.mkdirs();
-                    }
-                    fileName = filePart.getSubmittedFileName();
-                    filePart.write(uploadPath + File.separator + fileName);
-                }
+                String fileName = saveUploadedFile(filePart, "baju");
 
                 boolean success = dao.updateDesign(designId, name, cat, sizeGuideType, price, fileName);
                 if (success) {
@@ -170,18 +165,9 @@ public class DesignController extends HttpServlet {
                 double price = Double.parseDouble(request.getParameter("extraPrice"));
                 String stockStr = request.getParameter("stockQuantity");
                 double stockQuantity = (stockStr != null && !stockStr.trim().isEmpty()) ? Double.parseDouble(stockStr) : 0.00;
-                String fileName = null;
 
                 Part filePart = request.getPart("materialImage");
-                if (filePart != null && filePart.getSize() > 0 && filePart.getSubmittedFileName() != null && !filePart.getSubmittedFileName().trim().isEmpty()) {
-                    uploadPath = "C:/Users/Acer/Documents/AAAASem 5 FYP/material";
-                    uploadDir = new File(uploadPath);
-                    if (!uploadDir.exists()) {
-                        uploadDir.mkdirs();
-                    }
-                    fileName = filePart.getSubmittedFileName();
-                    filePart.write(uploadPath + File.separator + fileName);
-                }
+                String fileName = saveUploadedFile(filePart, "material");
 
                 boolean success = dao.updateMaterial(materialId, materialType, materialName, cat, fileName, price, stockQuantity);
                 if (success) {
@@ -194,18 +180,13 @@ public class DesignController extends HttpServlet {
                 String decorationName = request.getParameter("decorationName");
                 String description = request.getParameter("description");
                 String decorationType = request.getParameter("decorationType");
-                if (decorationType == null || decorationType.trim().isEmpty()) { decorationType = "Other"; }
+                if (decorationType == null || decorationType.trim().isEmpty()) {
+                    decorationType = "Other";
+                }
                 double price = Double.parseDouble(request.getParameter("price"));
 
-                uploadPath = "C:/Users/Acer/Documents/AAAASem 5 FYP/decoration";
-                uploadDir = new File(uploadPath);
-                if (!uploadDir.exists()) {
-                    uploadDir.mkdirs();
-                }
-
                 Part filePart = request.getPart("decorationImage");
-                String fileName = filePart.getSubmittedFileName();
-                filePart.write(uploadPath + File.separator + fileName);
+                String fileName = saveUploadedFile(filePart, "decoration");
 
                 boolean success = dao.addDecoration(decorationName, description, decorationType, price, fileName);
                 if (success) {
@@ -219,21 +200,14 @@ public class DesignController extends HttpServlet {
                 String decorationName = request.getParameter("decorationName");
                 String description = request.getParameter("description");
                 String decorationType = request.getParameter("decorationType");
-                if (decorationType == null || decorationType.trim().isEmpty()) { decorationType = "Other"; }
+                if (decorationType == null || decorationType.trim().isEmpty()) {
+                    decorationType = "Other";
+                }
                 double price = Double.parseDouble(request.getParameter("price"));
                 boolean isActive = request.getParameter("isActive") != null;
-                String fileName = null;
 
                 Part filePart = request.getPart("decorationImage");
-                if (filePart != null && filePart.getSize() > 0 && filePart.getSubmittedFileName() != null && !filePart.getSubmittedFileName().trim().isEmpty()) {
-                    uploadPath = "C:/Users/Acer/Documents/AAAASem 5 FYP/decoration";
-                    uploadDir = new File(uploadPath);
-                    if (!uploadDir.exists()) {
-                        uploadDir.mkdirs();
-                    }
-                    fileName = filePart.getSubmittedFileName();
-                    filePart.write(uploadPath + File.separator + fileName);
-                }
+                String fileName = saveUploadedFile(filePart, "decoration");
 
                 boolean success = dao.updateDecoration(decorationId, decorationName, description, decorationType, price, fileName, isActive);
                 if (success) {
