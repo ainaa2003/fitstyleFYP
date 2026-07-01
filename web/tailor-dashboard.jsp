@@ -298,7 +298,7 @@
                         </p>
                     </div>
 
-                    <div class="row g-3 mb-4">
+                    <div class="row g-3 mb-4 dashboard-summary-row">
                         <div class="col-md-6 col-xl">
                             <div class="card card-custom p-3 h-100">
                                 <div class="d-flex justify-content-between align-items-center">
